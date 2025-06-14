@@ -58,6 +58,7 @@ public class BurpExtender implements BurpExtension {
     public ZUCUIHandler ZUCUI;
     public JPanel pbkdf2Panel;
     public PBKDF2UIHandler PBKDF2UI;
+    public String ldbFolderName;
 
     // Montoya BurpExtension API required method
     @Override
@@ -66,7 +67,9 @@ public class BurpExtender implements BurpExtension {
         SecureUtil.disableBouncyCastle();
         Utils.stdout = this.stdout = new PrintWriter(System.out, true);
         Utils.stderr = this.stderr = new PrintWriter(System.err, true);
-        File ldbFile = new File("BurpCrypto.ldb");
+        // 使用唯一 ldb 文件夹名
+        ldbFolderName = "BurpCrypto_" + System.currentTimeMillis() + ".ldb";
+        File ldbFile = new File(ldbFolderName);
         // 初始化前如有 ldb 文件夹则递归删除
         if (ldbFile.exists()) {
             try {
@@ -165,24 +168,23 @@ public class BurpExtender implements BurpExtension {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        // 获取插件 jar 所在目录，递归删除 ldb 文件夹
-        String ldbDir = ".";
-        try {
-            ldbDir = new File(BurpExtender.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent();
-        } catch (URISyntaxException e) {
-            if (stdout != null) stdout.println("[BurpCrypto] Failed to get plugin directory: " + e.getMessage());
-        }
-        Path ldbPath = new File(ldbDir, "BurpCrypto.ldb").toPath();
-        if (Files.exists(ldbPath)) {
-            try {
-                Files.walk(ldbPath)
-                    .sorted((a, b) -> b.compareTo(a))
-                    .forEach(p -> {
-                        try { Files.delete(p); } catch (IOException ignored) {}
-                    });
-                if (stdout != null) stdout.println("[BurpCrypto] LevelDB folder deleted on extension unload.");
-            } catch (IOException e) {
-                if (stdout != null) stdout.println("[BurpCrypto] Failed to delete LevelDB folder on extension unload: " + e.getMessage());
+        this.store = null;
+        System.gc();
+        try { Thread.sleep(1500); } catch (InterruptedException ignored) {}
+        // 卸载时删除本次唯一 ldb 文件夹
+        if (ldbFolderName != null) {
+            File ldbFile = new File(ldbFolderName);
+            if (ldbFile.exists()) {
+                try {
+                    java.nio.file.Files.walk(ldbFile.toPath())
+                        .sorted((a, b) -> b.compareTo(a))
+                        .forEach(p -> {
+                            try { java.nio.file.Files.delete(p); } catch (IOException ignored) {}
+                        });
+                    if (stdout != null) stdout.println("[BurpCrypto] LevelDB folder deleted on extension unload: " + ldbFolderName);
+                } catch (IOException e) {
+                    if (stdout != null) stdout.println("[BurpCrypto] Failed to delete LevelDB folder on extension unload: " + e.getMessage());
+                }
             }
         }
         if (stdout != null) stdout.println("[BurpCrypto] Extension unloaded, LevelDB closed.");
