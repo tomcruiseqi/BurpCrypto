@@ -20,6 +20,10 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 
 import burp.api.montoya.MontoyaApi;
@@ -62,14 +66,36 @@ public class BurpExtender implements BurpExtension {
         SecureUtil.disableBouncyCastle();
         Utils.stdout = this.stdout = new PrintWriter(System.out, true);
         Utils.stderr = this.stderr = new PrintWriter(System.err, true);
+        File ldbFile = new File("BurpCrypto.ldb");
+        // 初始化前如有 ldb 文件夹则递归删除
+        if (ldbFile.exists()) {
+            try {
+                java.nio.file.Files.walk(ldbFile.toPath())
+                    .sorted((a, b) -> b.compareTo(a))
+                    .forEach(p -> {
+                        try { java.nio.file.Files.delete(p); } catch (IOException ignored) {}
+                    });
+                if (stdout != null) stdout.println("[BurpCrypto] Old LevelDB folder deleted before init.");
+            } catch (IOException e) {
+                if (stdout != null) stdout.println("[BurpCrypto] Failed to delete old LevelDB folder before init: " + e.getMessage());
+            }
+        }
+        if (this.store != null) {
+            try {
+                this.store.close();
+            } catch (IOException e) {
+                api.logging().logToError("LevelDb close failed! error message: " + e.getMessage());
+            }
+            this.store = null;
+        }
         api.extension().setName("BurpCrypto v" + version);
         api.userInterface().registerContextMenuItemsProvider(new BurpCryptoMenuFactory(this));
-        Options options = new Options();
+        org.iq80.leveldb.Options options = new org.iq80.leveldb.Options();
         options.createIfMissing(true);
         try {
-            this.store = factory.open(new File("BurpCrypto.ldb"), options);
+            this.store = org.iq80.leveldb.impl.Iq80DBFactory.factory.open(ldbFile, options);
             this.dict = new DictLogManager(this);
-            api.logging().logToOutput("LevelDb init success!");
+            api.logging().logToOutput("LevelDb init success! Path: " + ldbFile.getAbsolutePath());
         } catch (IOException e) {
             api.logging().logToError("LevelDb init failed! error message: " + e.getMessage());
         }
@@ -138,6 +164,26 @@ public class BurpExtender implements BurpExtension {
             if (this.store != null) this.store.close();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+        // 获取插件 jar 所在目录，递归删除 ldb 文件夹
+        String ldbDir = ".";
+        try {
+            ldbDir = new File(BurpExtender.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent();
+        } catch (URISyntaxException e) {
+            if (stdout != null) stdout.println("[BurpCrypto] Failed to get plugin directory: " + e.getMessage());
+        }
+        Path ldbPath = new File(ldbDir, "BurpCrypto.ldb").toPath();
+        if (Files.exists(ldbPath)) {
+            try {
+                Files.walk(ldbPath)
+                    .sorted((a, b) -> b.compareTo(a))
+                    .forEach(p -> {
+                        try { Files.delete(p); } catch (IOException ignored) {}
+                    });
+                if (stdout != null) stdout.println("[BurpCrypto] LevelDB folder deleted on extension unload.");
+            } catch (IOException e) {
+                if (stdout != null) stdout.println("[BurpCrypto] Failed to delete LevelDB folder on extension unload: " + e.getMessage());
+            }
         }
         if (stdout != null) stdout.println("[BurpCrypto] Extension unloaded, LevelDB closed.");
     }
