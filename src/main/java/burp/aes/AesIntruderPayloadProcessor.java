@@ -1,9 +1,12 @@
 package burp.aes;
 
 import burp.BurpExtender;
-import burp.IIntruderPayloadProcessor;
+import burp.api.montoya.core.ByteArray;
+import burp.api.montoya.intruder.PayloadData;
+import burp.api.montoya.intruder.PayloadProcessingResult;
+import burp.api.montoya.intruder.PayloadProcessor;
 
-public class AesIntruderPayloadProcessor implements IIntruderPayloadProcessor {
+public class AesIntruderPayloadProcessor implements PayloadProcessor {
     private BurpExtender parent;
     private final String extName;
     private final AesUtil AesUtil;
@@ -16,21 +19,19 @@ public class AesIntruderPayloadProcessor implements IIntruderPayloadProcessor {
     }
 
     @Override
-    public String getProcessorName() {
+    public String displayName() {
         return "BurpCrypto - AES Encrypt - " + extName;
     }
 
     @Override
-    public byte[] processPayload(final byte[] currentPayload, final byte[] originalPayload, final byte[] baseValue) {
+    public PayloadProcessingResult processPayload(PayloadData data) {
         try {
-            byte[] result = AesUtil.encrypt(currentPayload).getBytes("UTF-8");
-            parent.dict.Log(result, originalPayload);
-            return result;
+            byte[] result = AesUtil.encrypt(data.currentPayload().getBytes()).getBytes("UTF-8");
+            parent.dict.Log(result, data.originalPayload().getBytes());
+            return PayloadProcessingResult.usePayload(ByteArray.byteArray(result));
         } catch (Exception e) {
-            this.parent.callbacks.issueAlert(e.toString());
-            this.parent.stderr.println();
-            e.printStackTrace(this.parent.stderr);
-            return null;
+            // 可选：parent.api.logging().logToError(e.toString());
+            return PayloadProcessingResult.skipPayload();
         }
     }
 }

@@ -46,7 +46,7 @@ public class SM4UIHandler {
         final JPanel panel5 = UIUtil.GetXJPanel();
 
         final JLabel label2 = new JLabel("SM4 Alg: ");
-        sm4AlgSelector = new JComboBox(GetSM4Algs());
+        sm4AlgSelector = new JComboBox<String>(GetSM4Algs());
         sm4AlgSelector.setMaximumSize(sm4AlgSelector.getPreferredSize());
         sm4AlgSelector.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -58,21 +58,21 @@ public class SM4UIHandler {
         sm4AlgSelector.setSelectedIndex(0);
 
         final JLabel label3 = new JLabel("SM4 Key: ");
-        sm4KeyFormatSelector = new JComboBox(Utils.GetKeyFormats());
+        sm4KeyFormatSelector = new JComboBox<String>(Utils.GetKeyFormats());
         sm4KeyFormatSelector.setMaximumSize(sm4KeyFormatSelector.getPreferredSize());
         sm4KeyFormatSelector.setSelectedIndex(0);
         sm4KeyText = new JTextField(200);
         sm4KeyText.setMaximumSize(sm4KeyText.getPreferredSize());
 
         final JLabel label4 = new JLabel("SM4 IV: ");
-        sm4IVFormatSelector = new JComboBox(Utils.GetKeyFormats());
+        sm4IVFormatSelector = new JComboBox<String>(Utils.GetKeyFormats());
         sm4IVFormatSelector.setMaximumSize(sm4IVFormatSelector.getPreferredSize());
         sm4IVFormatSelector.setSelectedIndex(0);
         sm4IVText = new JTextField(200);
         sm4IVText.setMaximumSize(sm4IVText.getPreferredSize());
 
         final JLabel label5 = new JLabel("Output Format: ");
-        sm4OutFormatSelector = new JComboBox(Utils.GetOutFormats());
+        sm4OutFormatSelector = new JComboBox<String>(Utils.GetOutFormats());
         sm4OutFormatSelector.setMaximumSize(sm4OutFormatSelector.getPreferredSize());
         sm4OutFormatSelector.setSelectedIndex(0);
 
@@ -109,8 +109,8 @@ public class SM4UIHandler {
                     return;
                 }
             } else return;
-            if (parent.RegIPProcessor(extName, new SM4IntruderPayloadProcessor(parent, extName, sm4Config)))
-                JOptionPane.showMessageDialog(mainPanel, "Apply processor success!");
+            parent.regIPProcessor(extName, new SM4IntruderPayloadProcessor(extName, sm4Config));
+            JOptionPane.showMessageDialog(mainPanel, "Apply processor success!");
         });
 
         deleteBtn = new JButton("Remove processor");
@@ -121,7 +121,7 @@ public class SM4UIHandler {
                 JOptionPane.showMessageDialog(mainPanel, "name empty!");
                 return;
             }
-            parent.RemoveIPProcessor(extName);
+            parent.removeIPProcessor(extName);
             JOptionPane.showMessageDialog(mainPanel, "Remove success!");
         });
 

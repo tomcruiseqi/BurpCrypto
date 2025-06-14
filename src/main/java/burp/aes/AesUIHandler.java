@@ -46,7 +46,7 @@ public class AesUIHandler {
         final JPanel panel5 = UIUtil.GetXJPanel();
 
         final JLabel label2 = new JLabel("AES Alg: ");
-        aesAlgSelector = new JComboBox(GetAesAlgs());
+        aesAlgSelector = new JComboBox<String>(GetAesAlgs());
         aesAlgSelector.setMaximumSize(aesAlgSelector.getPreferredSize());
         aesAlgSelector.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -58,21 +58,21 @@ public class AesUIHandler {
         aesAlgSelector.setSelectedIndex(0);
 
         final JLabel label3 = new JLabel("AES Key: ");
-        aesKeyFormatSelector = new JComboBox(Utils.GetKeyFormats());
+        aesKeyFormatSelector = new JComboBox<String>(Utils.GetKeyFormats());
         aesKeyFormatSelector.setMaximumSize(aesKeyFormatSelector.getPreferredSize());
         aesKeyFormatSelector.setSelectedIndex(0);
         aesKeyText = new JTextField(200);
         aesKeyText.setMaximumSize(aesKeyText.getPreferredSize());
 
         final JLabel label4 = new JLabel("AES IV: ");
-        aesIVFormatSelector = new JComboBox(Utils.GetKeyFormats());
+        aesIVFormatSelector = new JComboBox<String>(Utils.GetKeyFormats());
         aesIVFormatSelector.setMaximumSize(aesIVFormatSelector.getPreferredSize());
         aesIVFormatSelector.setSelectedIndex(0);
         aesIVText = new JTextField(200);
         aesIVText.setMaximumSize(aesIVText.getPreferredSize());
 
         final JLabel label5 = new JLabel("Output Format: ");
-        aesOutFormatSelector = new JComboBox(Utils.GetOutFormats());
+        aesOutFormatSelector = new JComboBox<String>(Utils.GetOutFormats());
         aesOutFormatSelector.setMaximumSize(aesOutFormatSelector.getPreferredSize());
         aesOutFormatSelector.setSelectedIndex(0);
 
@@ -109,8 +109,8 @@ public class AesUIHandler {
                     return;
                 }
             } else return;
-            if (parent.RegIPProcessor(extName, new AesIntruderPayloadProcessor(parent, extName, aesConfig)))
-                JOptionPane.showMessageDialog(mainPanel, "Apply processor success!");
+            parent.regIPProcessor(extName, new AesIntruderPayloadProcessor(parent, extName, aesConfig));
+            JOptionPane.showMessageDialog(mainPanel, "Apply processor success!");
         });
 
         deleteBtn = new JButton("Remove processor");
@@ -121,7 +121,7 @@ public class AesUIHandler {
                 JOptionPane.showMessageDialog(mainPanel, "name empty!");
                 return;
             }
-            parent.RemoveIPProcessor(extName);
+            parent.removeIPProcessor(extName);
             JOptionPane.showMessageDialog(mainPanel, "Remove success!");
         });
 

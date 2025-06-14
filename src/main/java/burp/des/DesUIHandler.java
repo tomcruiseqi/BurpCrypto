@@ -52,7 +52,7 @@ public class DesUIHandler {
         final JPanel panel8 = UIUtil.GetXJPanel();
 
         final JLabel label2 = new JLabel("DES Alg: ");
-        desAlgSelector = new JComboBox(GetDesAlgs());
+        desAlgSelector = new JComboBox<String>(GetDesAlgs());
         desAlgSelector.setMaximumSize(desAlgSelector.getPreferredSize());
         desAlgSelector.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -78,14 +78,14 @@ public class DesUIHandler {
         desAlgSelector.setSelectedIndex(0);
 
         final JLabel label3 = new JLabel("DES Key: ");
-        desKeyFormatSelector = new JComboBox(Utils.GetKeyFormats());
+        desKeyFormatSelector = new JComboBox<String>(Utils.GetKeyFormats());
         desKeyFormatSelector.setMaximumSize(desKeyFormatSelector.getPreferredSize());
         desKeyFormatSelector.setSelectedIndex(0);
         desKeyText = new JTextField(200);
         desKeyText.setMaximumSize(desKeyText.getPreferredSize());
 
         final JLabel label4 = new JLabel("DES IV: ");
-        desIVFormatSelector = new JComboBox(Utils.GetKeyFormats());
+        desIVFormatSelector = new JComboBox<String>(Utils.GetKeyFormats());
         desIVFormatSelector.setMaximumSize(desIVFormatSelector.getPreferredSize());
         desIVFormatSelector.setSelectedIndex(0);
         desIVText = new JTextField(200);
@@ -104,7 +104,7 @@ public class DesUIHandler {
         desEncKey3Text.setMaximumSize(desEncKey3Text.getPreferredSize());
 
         final JLabel label8 = new JLabel("Output Format: ");
-        desOutFormatSelector = new JComboBox(Utils.GetOutFormats());
+        desOutFormatSelector = new JComboBox<String>(Utils.GetOutFormats());
         desOutFormatSelector.setMaximumSize(desOutFormatSelector.getPreferredSize());
         desOutFormatSelector.setSelectedIndex(0);
 
@@ -157,8 +157,8 @@ public class DesUIHandler {
                     return;
                 }
             } else return;
-            if (parent.RegIPProcessor(extName, new DesIntruderPayloadProcessor(parent, extName, desConfig)))
-                JOptionPane.showMessageDialog(mainPanel, "Apply processor success!");
+            parent.regIPProcessor(extName, new DesIntruderPayloadProcessor(parent, extName, desConfig));
+            JOptionPane.showMessageDialog(mainPanel, "Apply processor success!");
         });
 
         deleteBtn = new JButton("Remove processor");
@@ -169,7 +169,7 @@ public class DesUIHandler {
                 JOptionPane.showMessageDialog(mainPanel, "name empty!");
                 return;
             }
-            parent.RemoveIPProcessor(extName);
+            parent.removeIPProcessor(extName);
             JOptionPane.showMessageDialog(mainPanel, "Remove success!");
         });
 

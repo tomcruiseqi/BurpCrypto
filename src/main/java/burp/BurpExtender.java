@@ -8,7 +8,6 @@ import burp.rsa.RsaUIHandler;
 import burp.sm3.SM3UIHandler;
 import burp.sm4.SM4UIHandler;
 import burp.utils.BurpCryptoMenuFactory;
-import burp.utils.BurpStateListener;
 import burp.utils.DictLogManager;
 import burp.utils.Utils;
 import burp.zuc.ZUCUIHandler;
@@ -23,84 +22,57 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
 
+import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.BurpExtension;
+import burp.api.montoya.core.Registration;
+import burp.api.montoya.intruder.PayloadProcessor;
+
 import static org.iq80.leveldb.impl.Iq80DBFactory.factory;
 
-public class BurpExtender implements IBurpExtender, ITab {
-
-    public IExtensionHelpers helpers;
-    public IBurpExtenderCallbacks callbacks;
+public class BurpExtender implements BurpExtension {
+    public MontoyaApi api;
     public PrintWriter stdout;
     public PrintWriter stderr;
     public DB store;
     public DictLogManager dict;
     public String version = "0.1.9.1";
-    public HashMap<String, IIntruderPayloadProcessor> IPProcessors = new HashMap<>();
-
+    public HashMap<String, PayloadProcessor> IPProcessors = new HashMap<>();
     public JTabbedPane mainPanel;
-
     public JPanel aesPanel;
     public AesUIHandler AesUI;
-
-
     public JPanel rsaPanel;
     public RsaUIHandler RsaUI;
-
     public JPanel desPanel;
     public DesUIHandler DesUI;
-
     public JPanel execJsPanel;
     public JsUIHandler JsUI;
-
     public JPanel sm3Panel;
     public SM3UIHandler SM3UI;
-
     public JPanel sm4Panel;
     public SM4UIHandler SM4UI;
-
     public JPanel zucPanel;
     public ZUCUIHandler ZUCUI;
-
     public JPanel pbkdf2Panel;
     public PBKDF2UIHandler PBKDF2UI;
 
-    public boolean RegIPProcessor(String extName, IIntruderPayloadProcessor processor) {
-        if (IPProcessors.containsKey(extName)) {
-            JOptionPane.showMessageDialog(mainPanel, "This name already exist!");
-            return false;
-        }
-        callbacks.registerIntruderPayloadProcessor(processor);
-        IPProcessors.put(extName, processor);
-        return true;
-    }
-
-    public void RemoveIPProcessor(String extName) {
-        if (IPProcessors.containsKey(extName)) {
-            IIntruderPayloadProcessor processor = IPProcessors.get(extName);
-            callbacks.removeIntruderPayloadProcessor(processor);
-            IPProcessors.remove(extName);
-        }
-    }
-
+    // Montoya BurpExtension API required method
     @Override
-    public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
+    public void initialize(MontoyaApi api) {
+        this.api = api;
         SecureUtil.disableBouncyCastle();
-        this.callbacks = callbacks;
-        this.helpers = callbacks.getHelpers();
-        Utils.stdout = this.stdout = new PrintWriter(callbacks.getStdout(), true);
-        Utils.stderr = this.stderr = new PrintWriter(callbacks.getStderr(), true);
-        callbacks.setExtensionName("BurpCrypto v" + version);
-        callbacks.registerExtensionStateListener(new BurpStateListener(this));
-        callbacks.registerContextMenuFactory(new BurpCryptoMenuFactory(this));
+        Utils.stdout = this.stdout = new PrintWriter(System.out, true);
+        Utils.stderr = this.stderr = new PrintWriter(System.err, true);
+        api.extension().setName("BurpCrypto v" + version);
+        api.userInterface().registerContextMenuItemsProvider(new BurpCryptoMenuFactory(this));
         Options options = new Options();
         options.createIfMissing(true);
         try {
             this.store = factory.open(new File("BurpCrypto.ldb"), options);
             this.dict = new DictLogManager(this);
-            callbacks.issueAlert("LevelDb init success!");
+            api.logging().logToOutput("LevelDb init success!");
         } catch (IOException e) {
-            callbacks.issueAlert("LevelDb init failed! error message: " + e.getMessage());
+            api.logging().logToError("LevelDb init failed! error message: " + e.getMessage());
         }
-
         stdout.println("BurpCrypto loaded successfully!\r\n");
         stdout.println("Anthor: Whwlsfb");
         stdout.println("Email: whwlsfb@wanghw.cn");
@@ -136,17 +108,37 @@ public class BurpExtender implements IBurpExtender, ITab {
             bthis.mainPanel.addTab("PBKDF2", bthis.pbkdf2Panel);
             bthis.execJsPanel = JsUI.getPanel();
             bthis.mainPanel.addTab("Exec Js", bthis.execJsPanel);
-            bthis.callbacks.addSuiteTab(bthis);
+            api.userInterface().registerSuiteTab("BurpCrypto", bthis.mainPanel);
         });
     }
 
-    @Override
-    public String getTabCaption() {
-        return "BurpCrypto";
+    /**
+     * 注册 Intruder PayloadProcessor
+     */
+    public void regIPProcessor(String name, PayloadProcessor processor) {
+        if (!IPProcessors.containsKey(name)) {
+            IPProcessors.put(name, processor);
+            api.intruder().registerPayloadProcessor(processor);
+            if (stdout != null) stdout.println("[BurpCrypto] 注册PayloadProcessor: " + name);
+        }
     }
 
-    @Override
-    public Component getUiComponent() {
-        return this.mainPanel;
+    /**
+     * 移除 Intruder PayloadProcessor（仅移除本地引用，Burp API 无法主动注销）
+     */
+    public void removeIPProcessor(String name) {
+        if (IPProcessors.containsKey(name)) {
+            IPProcessors.remove(name);
+            if (stdout != null) stdout.println("[BurpCrypto] 移除PayloadProcessor: " + name);
+        }
+    }
+
+    public void extensionUnloaded() {
+        try {
+            if (this.store != null) this.store.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (stdout != null) stdout.println("[BurpCrypto] Extension unloaded, LevelDB closed.");
     }
 }

@@ -39,14 +39,14 @@ public class SM3UIHandler {
         final JPanel panel5 = UIUtil.GetXJPanel();
 
         final JLabel label3 = new JLabel("Salt: ");
-        saltFormatSelector = new JComboBox(Utils.GetKeyFormats());
+        saltFormatSelector = new JComboBox<String>(Utils.GetKeyFormats());
         saltFormatSelector.setMaximumSize(saltFormatSelector.getPreferredSize());
         saltFormatSelector.setSelectedIndex(0);
         saltText = new JTextField(200);
         saltText.setMaximumSize(saltText.getPreferredSize());
 
         final JLabel label5 = new JLabel("Output Format: ");
-        outFormatSelector = new JComboBox(Utils.GetOutFormats());
+        outFormatSelector = new JComboBox<String>(Utils.GetOutFormats());
         outFormatSelector.setMaximumSize(outFormatSelector.getPreferredSize());
         outFormatSelector.setSelectedIndex(0);
 
@@ -75,8 +75,8 @@ public class SM3UIHandler {
                     return;
                 }
             } else return;
-            if (parent.RegIPProcessor(extName, new SM3IntruderPayloadProcessor(parent, extName, config)))
-                JOptionPane.showMessageDialog(mainPanel, "Apply processor success!");
+            parent.regIPProcessor(extName, new SM3IntruderPayloadProcessor(extName, config));
+            JOptionPane.showMessageDialog(mainPanel, "Apply processor success!");
         });
 
         deleteBtn = new JButton("Remove processor");
@@ -87,7 +87,7 @@ public class SM3UIHandler {
                 JOptionPane.showMessageDialog(mainPanel, "name empty!");
                 return;
             }
-            parent.RemoveIPProcessor(extName);
+            parent.removeIPProcessor(extName);
             JOptionPane.showMessageDialog(mainPanel, "Remove success!");
         });
 

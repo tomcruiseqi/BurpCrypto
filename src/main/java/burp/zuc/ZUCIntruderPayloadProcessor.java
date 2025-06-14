@@ -1,36 +1,31 @@
 package burp.zuc;
 
-import burp.BurpExtender;
-import burp.IIntruderPayloadProcessor;
+import burp.api.montoya.intruder.PayloadProcessor;
+import burp.api.montoya.intruder.PayloadData;
+import burp.api.montoya.intruder.PayloadProcessingResult;
 
-public class ZUCIntruderPayloadProcessor implements IIntruderPayloadProcessor {
-    private BurpExtender parent;
+public class ZUCIntruderPayloadProcessor implements PayloadProcessor {
     private final String extName;
     private final ZUCUtil ZUCUtil;
 
-    public ZUCIntruderPayloadProcessor(final BurpExtender newParent, String extName, ZUCConfig config) {
-        this.parent = newParent;
+    public ZUCIntruderPayloadProcessor(String extName, ZUCConfig config) {
         this.extName = extName;
         ZUCUtil = new ZUCUtil();
         ZUCUtil.setConfig(config);
     }
 
     @Override
-    public String getProcessorName() {
+    public String displayName() {
         return "BurpCrypto - ZUC Encrypt - " + extName;
     }
 
     @Override
-    public byte[] processPayload(final byte[] currentPayload, final byte[] originalPayload, final byte[] baseValue) {
+    public PayloadProcessingResult processPayload(PayloadData payloadData) {
         try {
-            byte[] result = ZUCUtil.encrypt(currentPayload).getBytes("UTF-8");
-            parent.dict.Log(result, originalPayload);
-            return result;
+            byte[] result = ZUCUtil.encrypt(payloadData.currentPayload().getBytes()).getBytes("UTF-8");
+            return PayloadProcessingResult.usePayload(burp.api.montoya.core.ByteArray.byteArray(result));
         } catch (Exception e) {
-            this.parent.callbacks.issueAlert(e.toString());
-            this.parent.stderr.println();
-            e.printStackTrace(this.parent.stderr);
-            return null;
+            return PayloadProcessingResult.skipPayload();
         }
     }
 }

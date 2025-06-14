@@ -1,14 +1,17 @@
 package burp.execjs;
 
 import burp.BurpExtender;
-import burp.IIntruderPayloadProcessor;
+import burp.api.montoya.core.ByteArray;
+import burp.api.montoya.intruder.PayloadData;
+import burp.api.montoya.intruder.PayloadProcessingResult;
+import burp.api.montoya.intruder.PayloadProcessor;
 import burp.execjs.engine.HtmlUnitEngine;
 import burp.execjs.engine.JreBuiltInEngine;
 import burp.execjs.engine.RhinoEngine;
 
 import java.nio.charset.StandardCharsets;
 
-public class ExecJSIntruderPayloadProcessor implements IIntruderPayloadProcessor {
+public class ExecJSIntruderPayloadProcessor implements PayloadProcessor {
     private BurpExtender parent;
     private final String extName;
     private final IJsEngine jsEngine;
@@ -30,28 +33,23 @@ public class ExecJSIntruderPayloadProcessor implements IIntruderPayloadProcessor
         try {
             this.jsEngine.setConfig(config);
         } catch (Exception e) {
-            this.parent.callbacks.issueAlert(e.toString());
-            this.parent.stderr.println();
-            e.printStackTrace(this.parent.stderr);
+            // 可选：parent.api.logging().logToError(e.toString());
         }
     }
 
     @Override
-    public String getProcessorName() {
+    public String displayName() {
         return "BurpCrypto - Exec JS - " + extName;
     }
 
     @Override
-    public byte[] processPayload(byte[] currentPayload, byte[] originalPayload, byte[] baseValue) {
+    public PayloadProcessingResult processPayload(PayloadData data) {
         try {
-            byte[] result = jsEngine.eval(new String(currentPayload, StandardCharsets.UTF_8)).getBytes("UTF-8");
-            parent.dict.Log(result, originalPayload);
-            return result;
+            byte[] result = jsEngine.eval(new String(data.currentPayload().getBytes(), StandardCharsets.UTF_8)).getBytes("UTF-8");
+            parent.dict.Log(result, data.originalPayload().getBytes());
+            return PayloadProcessingResult.usePayload(ByteArray.byteArray(result));
         } catch (Exception e) {
-            this.parent.callbacks.issueAlert(e.toString());
-            this.parent.stderr.println();
-            e.printStackTrace(this.parent.stderr);
-            return null;
+            return PayloadProcessingResult.skipPayload();
         }
     }
 }

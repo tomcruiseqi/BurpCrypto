@@ -1,14 +1,8 @@
 package burp.execjs;
 
 import burp.BurpExtender;
-import burp.utils.KeyFormat;
 import burp.utils.UIUtil;
 import org.fife.rsta.ac.LanguageSupportFactory;
-import org.fife.rsta.ac.js.JavaScriptCompletionProvider;
-import org.fife.rsta.ac.js.JavaScriptLanguageSupport;
-import org.fife.ui.autocomplete.AutoCompletion;
-import org.fife.ui.autocomplete.CompletionProvider;
-import org.fife.ui.autocomplete.DefaultCompletionProvider;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
@@ -17,8 +11,6 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ItemEvent;
-import java.lang.management.ManagementFactory;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -60,7 +52,7 @@ public class JsUIHandler {
         methodText.setMaximumSize(methodText.getPreferredSize());
 
         final JLabel label4 = new JLabel("Js Engine: ");
-        jsEngineSelector = new JComboBox(GetJsEngines());
+        jsEngineSelector = new JComboBox<String>(GetJsEngines());
         jsEngineSelector.setMaximumSize(jsEngineSelector.getPreferredSize());
         jsEngineSelector.setSelectedIndex(0);
 
@@ -98,8 +90,8 @@ public class JsUIHandler {
                 JOptionPane.showMessageDialog(mainPanel, "name empty!");
                 return;
             }
-            if (parent.RegIPProcessor(extName, new ExecJSIntruderPayloadProcessor(parent, extName, config)))
-                JOptionPane.showMessageDialog(mainPanel, "Apply processor success!");
+            parent.regIPProcessor(extName, new ExecJSIntruderPayloadProcessor(parent, extName, config));
+            JOptionPane.showMessageDialog(mainPanel, "Apply processor success!");
         });
 
         deleteBtn = new JButton("Remove processor");
@@ -112,7 +104,7 @@ public class JsUIHandler {
                     return;
                 }
             } else return;
-            parent.RemoveIPProcessor(extName);
+            parent.removeIPProcessor(extName);
             JOptionPane.showMessageDialog(mainPanel, "Remove success!");
         });
 
@@ -192,13 +184,8 @@ public class JsUIHandler {
     }
 
     private boolean canUseCodeEditor() {
-        try {
-            String[] version = parent.callbacks.getBurpVersion();
-            return (((Double.parseDouble(version[1]) > 2020) ||
-                    (Double.parseDouble(version[1]) == 2020 && Double.parseDouble(version[2]) >= 4)));  // RSyntaxTextArea code editor only support in BurpSuite 2020.4 or higher.
-        } catch (Exception ex) {
-            return false;
-        }
+        // 兼容 Montoya API，始终允许使用代码编辑器
+        return true;
     }
 
     private String[] GetJsEngines() {

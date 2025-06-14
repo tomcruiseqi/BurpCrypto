@@ -7,7 +7,6 @@ import cn.hutool.crypto.symmetric.ZUC;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ItemEvent;
 import java.util.ArrayList;
 
 public class ZUCUIHandler {
@@ -47,26 +46,26 @@ public class ZUCUIHandler {
         final JPanel panel5 = UIUtil.GetXJPanel();
 
         final JLabel label2 = new JLabel("ZUC Alg: ");
-        zucAlgSelector = new JComboBox(GetZUCAlgs());
+        zucAlgSelector = new JComboBox<String>(GetZUCAlgs());
         zucAlgSelector.setMaximumSize(zucAlgSelector.getPreferredSize());
         zucAlgSelector.setSelectedIndex(0);
 
         final JLabel label3 = new JLabel("ZUC Key: ");
-        zucKeyFormatSelector = new JComboBox(Utils.GetKeyFormats());
+        zucKeyFormatSelector = new JComboBox<String>(Utils.GetKeyFormats());
         zucKeyFormatSelector.setMaximumSize(zucKeyFormatSelector.getPreferredSize());
         zucKeyFormatSelector.setSelectedIndex(0);
         zucKeyText = new JTextField(200);
         zucKeyText.setMaximumSize(zucKeyText.getPreferredSize());
 
         final JLabel label4 = new JLabel("ZUC IV: ");
-        zucIVFormatSelector = new JComboBox(Utils.GetKeyFormats());
+        zucIVFormatSelector = new JComboBox<String>(Utils.GetKeyFormats());
         zucIVFormatSelector.setMaximumSize(zucIVFormatSelector.getPreferredSize());
         zucIVFormatSelector.setSelectedIndex(0);
         zucIVText = new JTextField(200);
         zucIVText.setMaximumSize(zucIVText.getPreferredSize());
 
         final JLabel label5 = new JLabel("Output Format: ");
-        zucOutFormatSelector = new JComboBox(Utils.GetOutFormats());
+        zucOutFormatSelector = new JComboBox<String>(Utils.GetOutFormats());
         zucOutFormatSelector.setMaximumSize(zucOutFormatSelector.getPreferredSize());
         zucOutFormatSelector.setSelectedIndex(0);
 
@@ -103,8 +102,8 @@ public class ZUCUIHandler {
                     return;
                 }
             } else return;
-            if (parent.RegIPProcessor(extName, new ZUCIntruderPayloadProcessor(parent, extName, zucConfig)))
-                JOptionPane.showMessageDialog(mainPanel, "Apply processor success!");
+            parent.regIPProcessor(extName, new ZUCIntruderPayloadProcessor(extName, zucConfig));
+            JOptionPane.showMessageDialog(mainPanel, "Apply processor success!");
         });
 
         deleteBtn = new JButton("Remove processor");
@@ -115,7 +114,7 @@ public class ZUCUIHandler {
                 JOptionPane.showMessageDialog(mainPanel, "name empty!");
                 return;
             }
-            parent.RemoveIPProcessor(extName);
+            parent.removeIPProcessor(extName);
             JOptionPane.showMessageDialog(mainPanel, "Remove success!");
         });
 

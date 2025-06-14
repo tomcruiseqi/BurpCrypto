@@ -1,11 +1,13 @@
 package burp.des;
 
 import burp.BurpExtender;
-import burp.IIntruderPayloadProcessor;
-
+import burp.api.montoya.core.ByteArray;
+import burp.api.montoya.intruder.PayloadData;
+import burp.api.montoya.intruder.PayloadProcessingResult;
+import burp.api.montoya.intruder.PayloadProcessor;
 import java.nio.charset.StandardCharsets;
 
-public class DesIntruderPayloadProcessor implements IIntruderPayloadProcessor {
+public class DesIntruderPayloadProcessor implements PayloadProcessor {
     private BurpExtender parent;
     private final String extName;
     private final DesUtil DesUtil;
@@ -18,21 +20,18 @@ public class DesIntruderPayloadProcessor implements IIntruderPayloadProcessor {
     }
 
     @Override
-    public String getProcessorName() {
+    public String displayName() {
         return "BurpCrypto - DES Encrypt - " + extName;
     }
 
     @Override
-    public byte[] processPayload(final byte[] currentPayload, final byte[] originalPayload, final byte[] baseValue) {
+    public PayloadProcessingResult processPayload(PayloadData data) {
         try {
-            byte[] result = DesUtil.encrypt(currentPayload).getBytes(StandardCharsets.UTF_8);
-            parent.dict.Log(result, originalPayload);
-            return result;
+            byte[] result = DesUtil.encrypt(data.currentPayload().getBytes()).getBytes(StandardCharsets.UTF_8);
+            parent.dict.Log(result, data.originalPayload().getBytes());
+            return PayloadProcessingResult.usePayload(ByteArray.byteArray(result));
         } catch (Exception e) {
-            this.parent.callbacks.issueAlert(e.toString());
-            this.parent.stderr.println();
-            e.printStackTrace(this.parent.stderr);
-            return null;
+            return PayloadProcessingResult.skipPayload();
         }
     }
 }

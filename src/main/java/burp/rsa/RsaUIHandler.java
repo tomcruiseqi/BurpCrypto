@@ -47,7 +47,7 @@ public class RsaUIHandler {
         final JPanel panel5 = UIUtil.GetXJPanel();
 
         final JLabel label2 = new JLabel("RSA Public Key Format: ");
-        rsaPublicKeyFormatSelector = new JComboBox(Utils.GetPublicKeyFormats());
+        rsaPublicKeyFormatSelector = new JComboBox<String>(Utils.GetPublicKeyFormats());
         rsaPublicKeyFormatSelector.setMaximumSize(rsaPublicKeyFormatSelector.getPreferredSize());
         rsaPublicKeyFormatSelector.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -81,7 +81,7 @@ public class RsaUIHandler {
         x509Text.setMaximumSize(x509Text.getPreferredSize());
 
         final JLabel label6 = new JLabel("Output Format: ");
-        outFormatSelector = new JComboBox(Utils.GetOutFormats());
+        outFormatSelector = new JComboBox<String>(Utils.GetOutFormats());
         outFormatSelector.setMaximumSize(outFormatSelector.getPreferredSize());
         outFormatSelector.setSelectedIndex(0);
 
@@ -129,8 +129,8 @@ public class RsaUIHandler {
                 JOptionPane.showMessageDialog(mainPanel, "name empty!");
                 return;
             }
-            if (parent.RegIPProcessor(extName, new RsaIntruderPayloadProcessor(parent, extName, config)))
-                JOptionPane.showMessageDialog(mainPanel, "Apply processor success!");
+            parent.regIPProcessor(extName, new RsaIntruderPayloadProcessor(parent, extName, config));
+            JOptionPane.showMessageDialog(mainPanel, "Apply processor success!");
         });
 
         deleteBtn = new JButton("Remove processor");
@@ -143,7 +143,7 @@ public class RsaUIHandler {
                     return;
                 }
             } else return;
-            parent.RemoveIPProcessor(extName);
+            parent.removeIPProcessor(extName);
             JOptionPane.showMessageDialog(mainPanel, "Remove success!");
         });
 

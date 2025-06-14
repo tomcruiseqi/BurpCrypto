@@ -1,36 +1,31 @@
 package burp.sm4;
 
-import burp.BurpExtender;
-import burp.IIntruderPayloadProcessor;
+import burp.api.montoya.intruder.PayloadProcessor;
+import burp.api.montoya.intruder.PayloadData;
+import burp.api.montoya.intruder.PayloadProcessingResult;
 
-public class SM4IntruderPayloadProcessor implements IIntruderPayloadProcessor {
-    private BurpExtender parent;
+public class SM4IntruderPayloadProcessor implements PayloadProcessor {
     private final String extName;
     private final SM4Util SM4Util;
 
-    public SM4IntruderPayloadProcessor(final BurpExtender newParent, String extName, SM4Config config) {
-        this.parent = newParent;
+    public SM4IntruderPayloadProcessor(String extName, SM4Config config) {
         this.extName = extName;
         SM4Util = new SM4Util();
         SM4Util.setConfig(config);
     }
 
     @Override
-    public String getProcessorName() {
+    public String displayName() {
         return "BurpCrypto - SM4 Encrypt - " + extName;
     }
 
     @Override
-    public byte[] processPayload(final byte[] currentPayload, final byte[] originalPayload, final byte[] baseValue) {
+    public PayloadProcessingResult processPayload(PayloadData payloadData) {
         try {
-            byte[] result = SM4Util.encrypt(currentPayload).getBytes("UTF-8");
-            parent.dict.Log(result, originalPayload);
-            return result;
+            byte[] result = SM4Util.encrypt(payloadData.currentPayload().getBytes()).getBytes("UTF-8");
+            return PayloadProcessingResult.usePayload(burp.api.montoya.core.ByteArray.byteArray(result));
         } catch (Exception e) {
-            this.parent.callbacks.issueAlert(e.toString());
-            this.parent.stderr.println();
-            e.printStackTrace(this.parent.stderr);
-            return null;
+            return PayloadProcessingResult.skipPayload();
         }
     }
 }

@@ -57,19 +57,19 @@ public class PBKDF2UIHandler {
         iterationCountText.setText("1000");
 
         final JLabel label2_3 = new JLabel("Mode: ");
-        algSelector = new JComboBox(GetPBKDF2Modes());
+        algSelector = new JComboBox<String>(GetPBKDF2Modes());
         algSelector.setMaximumSize(algSelector.getPreferredSize());
         algSelector.setSelectedIndex(0);
 
         final JLabel label3 = new JLabel("Salt: ");
-        saltFormatSelector = new JComboBox(Utils.GetKeyFormats());
+        saltFormatSelector = new JComboBox<String>(Utils.GetKeyFormats());
         saltFormatSelector.setMaximumSize(saltFormatSelector.getPreferredSize());
         saltFormatSelector.setSelectedIndex(0);
         saltText = new JTextField(200);
         saltText.setMaximumSize(saltText.getPreferredSize());
 
         final JLabel label5 = new JLabel("Output Format: ");
-        outFormatSelector = new JComboBox(Utils.GetOutFormats());
+        outFormatSelector = new JComboBox<String>(Utils.GetOutFormats());
         outFormatSelector.setMaximumSize(outFormatSelector.getPreferredSize());
         outFormatSelector.setSelectedIndex(0);
 
@@ -114,8 +114,8 @@ public class PBKDF2UIHandler {
                     return;
                 }
             } else return;
-            if (parent.RegIPProcessor(extName, new PBKDF2IntruderPayloadProcessor(parent, extName, config)))
-                JOptionPane.showMessageDialog(mainPanel, "Apply processor success!");
+            parent.regIPProcessor(extName, new PBKDF2IntruderPayloadProcessor(parent, extName, config));
+            JOptionPane.showMessageDialog(mainPanel, "Apply processor success!");
         });
 
         deleteBtn = new JButton("Remove processor");
@@ -126,7 +126,7 @@ public class PBKDF2UIHandler {
                 JOptionPane.showMessageDialog(mainPanel, "name empty!");
                 return;
             }
-            parent.RemoveIPProcessor(extName);
+            parent.removeIPProcessor(extName);
             JOptionPane.showMessageDialog(mainPanel, "Remove success!");
         });
 
